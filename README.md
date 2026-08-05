@@ -470,12 +470,6 @@ For security-related issues, please review:
 
 ---
 
-## License
-
-This project is licensed under the terms described in the [LICENSE](LICENSE) file.
-
----
-
 ## Disclaimer
 
 This repository is provided for educational and practical workstation configuration purposes.
@@ -492,11 +486,16 @@ The author is not responsible for data loss, system instability, hardware issues
 
 **Roberto Delgado**
 
-Cybersecurity Consultant focused on infrastructure security, cloud security, and DevSecOps.
+*Cybersecurity Engineer*
 
-- GitHub: [@delgadoroberto](https://github.com/delgadoroberto)
-- Website: [delgadoroberto.github.io](https://delgadoroberto.github.io/)
+Cybersecurity professional focused on cloud and infrastructure security, DevSecOps, vulnerability management, and security automation.
+
+This repository is part of my technical portfolio, featuring hands-on projects that demonstrate secure engineering practices across cloud environments, Infrastructure as Code, container security, CI/CD, and security automation.
+
+> **Practical cybersecurity. Secure automation. Continuous learning.**
 
 ---
 
-⭐ If you find this repository useful, consider giving it a star.
+## 📄 License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
