@@ -2,43 +2,71 @@
 
 [Neovim](https://neovim.io/) is a modern, extensible text editor based on Vim.
 
-This guide covers the installation and basic configuration of Neovim on Ubuntu 26.04, including a Lua-based configuration.
+This guide covers the installation and configuration of Neovim on Ubuntu 26.04 using a Lua-based configuration managed with `lazy.nvim`.
+
+The repository provides a ready-to-use configuration with:
+
+- lazy.nvim
+- Catppuccin
+- nvim-treesitter
+- Lua syntax highlighting
+- Vim syntax highlighting
+- Vim documentation syntax highlighting
+- Bash syntax highlighting
 
 ---
 
-## 1. Install Neovim
+## 1. Prerequisites
 
-Ubuntu provides Neovim through its package repositories.
+Before installing the repository configuration, make sure the following dependencies are available:
 
-Install it with:
+- Neovim
+- Git
+- GCC or another supported C compiler
+- Build tools required by Treesitter parsers
+
+Install Git and the required build tools:
+
+```bash
+sudo apt install -y git build-essential
+```
+
+Verify the installation:
+
+```bash
+git --version
+gcc --version
+```
+
+---
+
+## 2. Install Neovim
+
+Install Neovim from the Ubuntu package repositories:
 
 ```bash
 sudo apt install -y neovim
 ```
 
----
-
-## 2. Verify the Installation
-
-Check the installed version:
+Verify the installed version:
 
 ```bash
 nvim --version
 ```
 
-The first line should display the installed Neovim version.
-
-You can also verify the executable location:
-
-```bash
-which nvim
-```
-
-Check the executable being used:
+Check which executable is being used:
 
 ```bash
 command -v nvim
 ```
+
+If multiple Neovim installations exist, use:
+
+```bash
+type -a nvim
+```
+
+This helps identify which executable is being used by the shell.
 
 ---
 
@@ -49,8 +77,6 @@ Start Neovim:
 ```bash
 nvim
 ```
-
-You should see the Neovim interface.
 
 To exit Neovim:
 
@@ -64,7 +90,7 @@ Press `Enter` after entering the command.
 
 ## 4. Create the Neovim Configuration Directory
 
-Neovim stores its user configuration under:
+Neovim stores user configuration files under:
 
 ```text
 ~/.config/nvim/
@@ -84,108 +110,100 @@ ls -la "$HOME/.config/nvim"
 
 ---
 
-## 5. Create the Lua Configuration
+## 5. Install the Repository Configuration
 
-Neovim's primary configuration file can be written in Lua.
-
-Create:
+The repository provides the Neovim configuration at:
 
 ```text
-~/.config/nvim/init.lua
+config/nvim/init.lua
 ```
 
-Using Neovim:
+From the root of the repository, copy the configuration to the user's Neovim configuration directory:
 
 ```bash
-nvim "$HOME/.config/nvim/init.lua"
+cp config/nvim/init.lua "$HOME/.config/nvim/init.lua"
 ```
 
-A minimal configuration can be:
-
-```lua
-vim.opt.number = true
-vim.opt.relativenumber = true
-vim.opt.expandtab = true
-vim.opt.shiftwidth = 4
-vim.opt.tabstop = 4
-vim.opt.smartindent = true
-vim.opt.termguicolors = true
-```
-
-Save the file and restart Neovim.
-
----
-
-## 6. Use the Repository Configuration
-
-This repository can store the Neovim configuration under:
-
-```text
-configs/nvim/init.lua
-```
-
-From the root of the repository, copy the configuration:
-
-```bash
-cp configs/nvim/init.lua "$HOME/.config/nvim/init.lua"
-```
-
-Verify the file:
+Verify:
 
 ```bash
 ls -l "$HOME/.config/nvim/init.lua"
 ```
 
----
-
-## 7. Create the Configuration Manually
-
-If you prefer to create the configuration yourself, open:
-
-```bash
-nvim "$HOME/.config/nvim/init.lua"
-```
-
-A basic configuration can include:
-
-```lua
-vim.opt.number = true
-vim.opt.relativenumber = true
-
-vim.opt.expandtab = true
-vim.opt.shiftwidth = 4
-vim.opt.tabstop = 4
-vim.opt.smartindent = true
-
-vim.opt.termguicolors = true
-vim.opt.cursorline = true
-
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
-
-vim.opt.splitbelow = true
-vim.opt.splitright = true
-```
-
-These settings provide basic editor behavior without requiring external plugins.
+The repository version should be treated as the source-controlled configuration.
 
 ---
 
-## 8. Verify the Configuration
+## 6. Configuration Overview
 
-Start Neovim:
+The repository configuration is written in Lua and uses `lazy.nvim` as the plugin manager.
+
+The configuration currently includes:
+
+### lazy.nvim
+
+`lazy.nvim` is used to install and manage Neovim plugins.
+
+If `lazy.nvim` is not already installed, `init.lua` automatically clones it into Neovim's data directory.
+
+No manual installation is required.
+
+### Catppuccin
+
+[Catppuccin](https://github.com/catppuccin/nvim) provides the color scheme.
+
+The configuration uses:
+
+```text
+Mocha
+```
+
+with transparent backgrounds enabled.
+
+### nvim-treesitter
+
+[nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) provides syntax-aware highlighting.
+
+The current configuration installs parsers for:
+
+- Lua
+- Vim
+- Vimdoc
+- Bash
+
+The required parsers are installed automatically by the configuration.
+
+---
+
+## 7. First Launch
+
+Start Neovim after copying the configuration:
 
 ```bash
 nvim
 ```
 
-Inside Neovim, check the current configuration directory:
+During the first launch, `init.lua` will:
+
+1. Bootstrap `lazy.nvim` if it is not installed.
+2. Install the configured plugins.
+3. Configure the Catppuccin color scheme.
+4. Install the configured Treesitter parsers.
+5. Enable Treesitter highlighting.
+
+The first launch may take longer than subsequent launches because plugins and parsers need to be installed.
+
+---
+
+## 8. Verify the Configuration
+
+Check the configuration directory from inside Neovim:
 
 ```vim
 :echo stdpath('config')
 ```
 
-The expected result is:
+The expected result is similar to:
 
 ```text
 /home/USERNAME/.config/nvim
@@ -205,9 +223,54 @@ The expected result is similar to:
 
 ---
 
-## 9. Check for Configuration Errors
+## 9. Check the Plugin Manager
 
-Run Neovim with the health check:
+Inside Neovim, run:
+
+```vim
+:Lazy
+```
+
+The lazy.nvim interface should display the configured plugins.
+
+The current configuration should include:
+
+- catppuccin
+- nvim-treesitter
+
+---
+
+## 10. Check Treesitter
+
+Inside Neovim, open a supported file such as a Lua or Bash file.
+
+For example:
+
+```bash
+nvim "$HOME/test.lua"
+```
+
+Then check the active Treesitter parser:
+
+```vim
+:InspectTree
+```
+
+If Treesitter is working correctly, the syntax tree should be displayed.
+
+You can also check the installed parsers with:
+
+```vim
+:TSInstallInfo
+```
+
+> The exact Treesitter commands may vary depending on the installed version of nvim-treesitter.
+
+---
+
+## 11. Check for Configuration Errors
+
+Run Neovim's health check:
 
 ```bash
 nvim
@@ -219,17 +282,17 @@ Then execute:
 :checkhealth
 ```
 
-Neovim will check different parts of the installation and report warnings or errors.
+Neovim will check different components of the installation and report warnings or errors.
 
 Not every warning indicates a problem with the base installation. Some checks depend on optional external tools or plugins.
 
 ---
 
-## 10. Check the Lua Configuration
+## 12. Check the Lua Configuration
 
 Neovim can execute Lua directly from its command interface.
 
-For example:
+Run:
 
 ```vim
 :lua print("Lua configuration is working")
@@ -245,7 +308,7 @@ This confirms that Neovim's Lua runtime is available.
 
 ---
 
-## 11. Configure the Default Editor
+## 13. Configure Git to Use Neovim
 
 Git can use Neovim as its default editor.
 
@@ -261,7 +324,7 @@ Verify:
 git config --global core.editor
 ```
 
-Expected:
+Expected output:
 
 ```text
 nvim
@@ -271,7 +334,7 @@ This configuration is also documented in [Git](07-git.md).
 
 ---
 
-## 12. Create a Basic Editor Alias
+## 14. Optional: Create a Shell Alias
 
 If desired, create a shell alias for opening Neovim:
 
@@ -281,52 +344,63 @@ alias v='nvim'
 
 This alias only applies to the current shell session.
 
-To make it persistent, add it to the appropriate shell configuration file.
+For Zsh, add the alias to:
 
-For Bash:
-
-```bash
-nvim "$HOME/.bashrc"
+```text
+~/.zshrc
 ```
 
-Add:
+For Bash, add it to:
+
+```text
+~/.bashrc
+```
+
+For example:
 
 ```bash
-alias v='nvim'
+echo "alias v='nvim'" >> "$HOME/.zshrc"
 ```
 
 Reload the configuration:
 
 ```bash
-source "$HOME/.bashrc"
+source "$HOME/.zshrc"
 ```
 
-Test:
+Test the alias:
 
 ```bash
 v
 ```
 
-> If you use a different shell, such as Zsh or Fish, configure the alias in that shell's configuration file instead.
-
 ---
 
-## 13. Configuration File Structure
+## 15. Configuration File Structure
 
-The repository configuration can use the following structure:
+The repository uses the following structure:
 
 ```text
 ubuntu-workstation-setup/
-└── configs/
-    └── nvim/
-        └── init.lua
+├── config/
+│   ├── nvim/
+│   │   └── init.lua
+│   └── wezterm.lua
+└── docs/
+    ├── 08-wezterm.md
+    └── 09-neovim.md
+```
+
+The repository configuration is stored at:
+
+```text
+config/nvim/init.lua
 ```
 
 The active configuration on the workstation is:
 
 ```text
-~/.config/nvim/
-└── init.lua
+~/.config/nvim/init.lua
 ```
 
 The relationship is:
@@ -343,25 +417,25 @@ The repository version should be treated as the source-controlled configuration.
 
 ---
 
-## 14. Update the Repository Configuration
+## 16. Update the Repository Configuration
 
 If you modify the active configuration and want to save the changes to the repository, copy it back:
 
 ```bash
-cp "$HOME/.config/nvim/init.lua" configs/nvim/init.lua
+cp "$HOME/.config/nvim/init.lua" config/nvim/init.lua
 ```
 
 Review the changes:
 
 ```bash
-git diff -- configs/nvim/init.lua
+git diff -- config/nvim/init.lua
 ```
 
 If the changes are correct, commit them through the normal Git workflow.
 
 ---
 
-## 15. Optional: Create a Backup Before Replacing the Configuration
+## 17. Backup the Existing Configuration
 
 If a previous Neovim configuration already exists, create a backup before replacing it:
 
@@ -372,7 +446,7 @@ cp "$HOME/.config/nvim/init.lua" "$HOME/.config/nvim/init.lua.backup"
 Then copy the repository configuration:
 
 ```bash
-cp configs/nvim/init.lua "$HOME/.config/nvim/init.lua"
+cp config/nvim/init.lua "$HOME/.config/nvim/init.lua"
 ```
 
 If you need to restore the backup:
@@ -383,7 +457,7 @@ mv "$HOME/.config/nvim/init.lua.backup" "$HOME/.config/nvim/init.lua"
 
 ---
 
-## 16. Troubleshooting
+## 18. Troubleshooting
 
 ### `nvim: command not found`
 
@@ -409,7 +483,7 @@ nvim --version
 
 ### Configuration file is not being loaded
 
-Check the configuration directory from inside Neovim:
+Check the configuration directory:
 
 ```vim
 :echo stdpath('config')
@@ -426,6 +500,66 @@ Expected:
 ```text
 init.lua
 ```
+
+---
+
+### lazy.nvim is not installed
+
+Start Neovim:
+
+```bash
+nvim
+```
+
+Check for errors:
+
+```vim
+:messages
+```
+
+Verify that Git is available:
+
+```bash
+git --version
+```
+
+The configuration requires Git to clone lazy.nvim during the bootstrap process.
+
+---
+
+### Plugins are not installed
+
+Inside Neovim, run:
+
+```vim
+:Lazy
+```
+
+You can also synchronize the configured plugins with:
+
+```vim
+:Lazy sync
+```
+
+Then restart Neovim.
+
+---
+
+### Treesitter parser installation fails
+
+Make sure the required build tools are installed:
+
+```bash
+sudo apt install -y build-essential
+```
+
+Verify GCC:
+
+```bash
+gcc --version
+```
+
+Then restart Neovim and allow the configured Treesitter parsers to install.
 
 ---
 
@@ -464,7 +598,7 @@ Fix the reported Lua syntax or configuration errors.
 Check the executable:
 
 ```bash
-which nvim
+command -v nvim
 ```
 
 Then:
@@ -473,7 +607,7 @@ Then:
 nvim --version
 ```
 
-If multiple installations exist, check all available executables:
+If multiple installations exist:
 
 ```bash
 type -a nvim
@@ -483,9 +617,9 @@ This can reveal whether Neovim is being provided by multiple locations.
 
 ---
 
-## 17. Verify the Complete Installation
+## 19. Verify the Complete Installation
 
-Check the version:
+Check the Neovim version:
 
 ```bash
 nvim --version
@@ -494,7 +628,7 @@ nvim --version
 Check the executable:
 
 ```bash
-which nvim
+command -v nvim
 ```
 
 Check the configuration directory:
@@ -531,8 +665,13 @@ The Neovim setup consists of:
 Neovim
 ├── Installed
 ├── Version verified
+├── Git installed
+├── Build tools installed
 ├── ~/.config/nvim/ created
 ├── init.lua configured
+├── lazy.nvim bootstrapped
+├── Plugins installed
+├── Treesitter parsers installed
 ├── Lua configuration verified
 └── Health check performed
 ```
@@ -540,7 +679,7 @@ Neovim
 The repository configuration is stored at:
 
 ```text
-configs/nvim/init.lua
+config/nvim/init.lua
 ```
 
 The active user configuration is:
