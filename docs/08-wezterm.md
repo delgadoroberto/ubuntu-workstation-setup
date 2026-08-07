@@ -49,8 +49,6 @@ Install WezTerm:
 sudo apt install -y wezterm
 ```
 
-> These commands follow the official WezTerm Linux installation instructions. :contentReference[oaicite:2]{index=2}
-
 ---
 
 ## 2. Verify the Installation
