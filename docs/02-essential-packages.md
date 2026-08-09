@@ -91,7 +91,7 @@ Install support for common archive formats:
 sudo apt install -y rar unrar 7zip 7zip-rar
 ```
 
-### Packages included
+### Archive packages included
 
 | Package | Purpose |
 | --- | --- |
