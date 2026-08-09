@@ -244,7 +244,6 @@ ls -lh /var/lib/clamav/
 ```
 
 > `freshclam` may report that another ClamAV process is already updating the database. If that happens, check the status of the ClamAV update service instead of running multiple update processes simultaneously.
-
 ---
 
 ## 12. Scan a Directory
