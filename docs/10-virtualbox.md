@@ -2,13 +2,97 @@
 
 [VirtualBox](https://www.virtualbox.org/) is a virtualization platform that allows you to run virtual machines on an Ubuntu workstation.
 
-This guide covers the installation and basic configuration of VirtualBox on Ubuntu 26.04, including adding the current user to the `vboxusers` group.
+This guide covers the installation and basic configuration of Oracle VirtualBox on Ubuntu 26.04 using the official Oracle APT repository.
+
+The configuration includes:
+
+- Oracle VirtualBox installation
+- Oracle package repository configuration
+- Kernel headers and DKMS
+- `vboxusers` group configuration
+- Hardware virtualization verification
+- VirtualBox kernel module verification
+- Optional default virtual machine location
+- Basic troubleshooting
+- Optional Extension Pack
+
+> This guide installs VirtualBox from the official Oracle repository rather than the Ubuntu package repository.
 
 ---
 
-## 1. Install VirtualBox
+## 1. Check the Ubuntu Version
 
-Install VirtualBox from the Ubuntu package repositories:
+Verify that the workstation is running Ubuntu 26.04:
+
+```bash
+lsb_release -a
+```
+
+You can also check the release information with:
+
+```bash
+cat /etc/os-release
+```
+
+Ubuntu 26.04 uses the codename:
+
+```text
+resolute
+```
+
+Verify the codename:
+
+```bash
+. /etc/os-release && echo "$VERSION_CODENAME"
+```
+
+Expected:
+
+```text
+resolute
+```
+
+> This guide is intended for Ubuntu 26.04. Do not use the `resolute` repository configuration on a different Ubuntu release.
+
+---
+
+## 2. Check the System Architecture
+
+Oracle provides packages for specific system architectures.
+
+Check the architecture:
+
+```bash
+dpkg --print-architecture
+```
+
+For a standard 64-bit Intel or AMD Ubuntu workstation, the expected result is:
+
+```text
+amd64
+```
+
+You can also check the kernel architecture:
+
+```bash
+uname -m
+```
+
+Expected:
+
+```text
+x86_64
+```
+
+The architecture of the package must match the architecture supported by the running kernel.
+
+---
+
+## 3. Install Prerequisites
+
+VirtualBox requires kernel modules to integrate with the Linux kernel.
+
+Install the required packages:
 
 ```bash
 sudo apt update
@@ -17,16 +101,175 @@ sudo apt update
 Then:
 
 ```bash
-sudo apt install -y virtualbox
+sudo apt install -y \
+  build-essential \
+  dkms \
+  linux-headers-$(uname -r) \
+  ca-certificates \
+  wget \
+  gnupg
 ```
 
-APT will install VirtualBox and the required dependencies.
+These packages provide:
 
-> The exact VirtualBox version depends on the package available for Ubuntu 26.04. This guide intentionally does not hard-code a specific version.
+- `build-essential` for compiling kernel modules.
+- `dkms` for rebuilding kernel modules when required.
+- `linux-headers-$(uname -r)` for the currently running kernel.
+- `ca-certificates` for trusted HTTPS connections.
+- `wget` for downloading the Oracle signing key.
+- `gnupg` for managing the repository signing key.
+
+Verify the installed kernel:
+
+```bash
+uname -r
+```
+
+Verify the kernel headers:
+
+```bash
+ls -d /usr/src/linux-headers-$(uname -r)
+```
+
+If the directory exists, the headers for the running kernel are installed.
+
+Oracle's documentation notes that Debian and Ubuntu systems require appropriate kernel headers for building the VirtualBox kernel modules. :contentReference[oaicite:4]{index=4}
 
 ---
 
-## 2. Verify the Installation
+## 4. Create the APT Keyring Directory
+
+Create the directory used for repository signing keys:
+
+```bash
+sudo install -d -m 0755 /etc/apt/keyrings
+```
+
+This keeps the Oracle repository signing key separate from the system's general trusted keyrings.
+
+---
+
+## 5. Download the Oracle VirtualBox Signing Key
+
+Download the official Oracle VirtualBox repository signing key:
+
+```bash
+wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc \
+  -O /tmp/oracle_vbox_2016.asc
+```
+
+Convert the ASCII-armored key into a binary keyring:
+
+```bash
+sudo gpg --dearmor \
+  --output /etc/apt/keyrings/oracle-virtualbox-2016.gpg \
+  /tmp/oracle_vbox_2016.asc
+```
+
+Remove the temporary key file:
+
+```bash
+rm /tmp/oracle_vbox_2016.asc
+```
+
+Verify the keyring:
+
+```bash
+sudo gpg --show-keys /etc/apt/keyrings/oracle-virtualbox-2016.gpg
+```
+
+The Oracle VirtualBox archive signing key currently has the fingerprint:
+
+```text
+B9F8 D658 297A F3EF C18D 5CDF A2F6 83C5 2980 AECF
+```
+
+Verify the fingerprint before trusting the key.
+
+The key and fingerprint are documented by Oracle. :contentReference[oaicite:5]{index=5}
+
+---
+
+## 6. Add the Oracle VirtualBox Repository
+
+Create an APT source file for the Oracle VirtualBox repository:
+
+```bash
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian resolute contrib" | \
+  sudo tee /etc/apt/sources.list.d/virtualbox.list > /dev/null
+```
+
+Verify the repository configuration:
+
+```bash
+cat /etc/apt/sources.list.d/virtualbox.list
+```
+
+Expected:
+
+```text
+deb [arch=amd64 signed-by=/etc/apt/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian resolute contrib
+```
+
+Oracle currently publishes a `resolute` distribution in its VirtualBox APT repository. :contentReference[oaicite:6]{index=6}
+
+---
+
+## 7. Update the APT Package Index
+
+Update the package index:
+
+```bash
+sudo apt update
+```
+
+The output should show the Oracle VirtualBox repository:
+
+```text
+https://download.virtualbox.org/virtualbox/debian
+```
+
+If APT reports a signature or repository error, do not continue with the installation until the repository configuration is corrected.
+
+---
+
+## 8. Check Available VirtualBox Packages
+
+Check the available VirtualBox packages:
+
+```bash
+apt policy virtualbox-7.2
+```
+
+The candidate package should be provided by the Oracle repository.
+
+You can also search for available VirtualBox packages:
+
+```bash
+apt search '^virtualbox'
+```
+
+Oracle currently provides VirtualBox 7.2 packages for Ubuntu `resolute`. :contentReference[oaicite:7]{index=7}
+
+> The VirtualBox major version may change over time. If Oracle introduces a newer major package series, update the package name and documentation accordingly.
+
+---
+
+## 9. Install Oracle VirtualBox
+
+Install the current VirtualBox 7.2 package from the Oracle repository:
+
+```bash
+sudo apt install -y virtualbox-7.2
+```
+
+APT will install the required dependencies.
+
+During installation, VirtualBox attempts to build and configure the required kernel modules for the running kernel.
+
+---
+
+## 10. Verify the Installation
 
 Check the installed VirtualBox version:
 
@@ -49,12 +292,20 @@ which VBoxManage
 Check the installed package:
 
 ```bash
-apt policy virtualbox
+apt policy virtualbox-7.2
 ```
+
+Verify the package source:
+
+```bash
+apt-cache policy virtualbox-7.2
+```
+
+The package should be associated with the Oracle VirtualBox repository.
 
 ---
 
-## 3. Check the Current User
+## 11. Check the Current User
 
 Display the current username:
 
@@ -72,7 +323,7 @@ At this point, the `vboxusers` group may not yet be present.
 
 ---
 
-## 4. Add the User to the `vboxusers` Group
+## 12. Add the User to the `vboxusers` Group
 
 Add the current user to the VirtualBox users group:
 
@@ -90,9 +341,11 @@ getent group vboxusers
 
 The output should contain the `vboxusers` group.
 
+Oracle's documentation also uses the `vboxusers` group for users who need access to VirtualBox functionality such as USB devices. :contentReference[oaicite:8]{index=8}
+
 ---
 
-## 5. Apply the Group Membership
+## 13. Apply the Group Membership
 
 Group membership changes do not normally apply to the current login session immediately.
 
@@ -128,7 +381,7 @@ The `vboxusers` group should appear in the list of supplementary groups.
 
 ---
 
-## 6. Verify the `vboxusers` Group
+## 14. Verify the `vboxusers` Group
 
 Check the group:
 
@@ -156,7 +409,167 @@ vboxusers membership confirmed
 
 ---
 
-## 7. Launch VirtualBox
+## 15. Check Hardware Virtualization Support
+
+VirtualBox requires hardware virtualization support.
+
+Check whether the CPU exposes virtualization capabilities:
+
+```bash
+lscpu | grep -i virtualization
+```
+
+Possible output includes:
+
+```text
+Virtualization: VT-x
+```
+
+or:
+
+```text
+Virtualization: AMD-V
+```
+
+You can also check the CPU flags:
+
+```bash
+grep -E --color 'vmx|svm' /proc/cpuinfo
+```
+
+For Intel CPUs:
+
+```text
+vmx
+```
+
+indicates Intel VT-x.
+
+For AMD CPUs:
+
+```text
+svm
+```
+
+indicates AMD-V.
+
+If virtualization is not reported, check the system firmware/UEFI settings.
+
+Depending on the system, the option may be named:
+
+```text
+Intel Virtualization Technology
+Intel VT-x
+AMD-V
+SVM Mode
+```
+
+The exact name depends on the system firmware.
+
+> Changing firmware settings should be done carefully. Do not change unrelated firmware options.
+
+---
+
+## 16. Check the VirtualBox Kernel Modules
+
+VirtualBox uses kernel modules to provide virtualization functionality.
+
+Check whether the VirtualBox modules are loaded:
+
+```bash
+lsmod | grep -E '^vbox'
+```
+
+Typical modules may include:
+
+```text
+vboxdrv
+vboxnetflt
+vboxnetadp
+```
+
+The exact modules loaded depend on the VirtualBox configuration and whether virtual machines or networking features are currently being used.
+
+Check specifically for `vboxdrv`:
+
+```bash
+lsmod | grep vboxdrv
+```
+
+If the module is loaded, output similar to the following should appear:
+
+```text
+vboxdrv
+```
+
+---
+
+## 17. Check DKMS Status
+
+Verify the DKMS configuration:
+
+```bash
+dkms status
+```
+
+You should see a VirtualBox-related entry if the kernel modules were registered successfully.
+
+If VirtualBox was recently installed or the kernel was recently updated, reboot the workstation and check again.
+
+---
+
+## 18. Check Secure Boot
+
+Secure Boot can affect the loading of third-party kernel modules.
+
+Check whether Secure Boot is enabled:
+
+```bash
+mokutil --sb-state
+```
+
+If `mokutil` is not installed:
+
+```bash
+sudo apt install -y mokutil
+```
+
+Then:
+
+```bash
+mokutil --sb-state
+```
+
+Possible output:
+
+```text
+SecureBoot enabled
+```
+
+or:
+
+```text
+SecureBoot disabled
+```
+
+When Secure Boot is enabled, VirtualBox kernel modules may need to be signed before they can be loaded.
+
+The relevant modules include:
+
+```text
+vboxdrv
+vboxnetadp
+vboxnetflt
+vboxpci
+```
+
+If VirtualBox cannot load its kernel modules with Secure Boot enabled, follow the appropriate module-signing procedure for the Ubuntu installation rather than disabling unrelated security controls.
+
+Oracle documents Secure Boot considerations for VirtualBox kernel modules. :contentReference[oaicite:9]{index=9}
+
+---
+
+## 19. Launch VirtualBox
 
 Launch the graphical VirtualBox application:
 
@@ -170,7 +583,7 @@ The VirtualBox Manager should open without requiring `sudo`.
 
 ---
 
-## 8. Verify VirtualBox with VBoxManage
+## 20. Verify VirtualBox with VBoxManage
 
 `VBoxManage` is VirtualBox's command-line management interface.
 
@@ -192,93 +605,17 @@ This provides information about the host system and VirtualBox's ability to acce
 
 ---
 
-## 9. Check Virtualization Support
-
-VirtualBox requires hardware virtualization support.
-
-On Intel systems, check whether the CPU exposes VT-x:
-
-```bash
-grep -E --color 'vmx|svm' /proc/cpuinfo
-```
-
-For Intel CPUs, `vmx` indicates Intel VT-x support.
-
-For AMD CPUs, `svm` indicates AMD-V support.
-
-A simpler check is:
-
-```bash
-lscpu | grep -i virtualization
-```
-
-Possible output includes:
-
-```text
-Virtualization: VT-x
-```
-
-or:
-
-```text
-Virtualization: AMD-V
-```
-
----
-
-## 10. Check the VirtualBox Kernel Modules
-
-VirtualBox uses kernel modules to provide virtualization functionality.
-
-Check whether the VirtualBox modules are loaded:
-
-```bash
-lsmod | grep -E '^vbox'
-```
-
-Typical modules may include:
-
-```text
-vboxdrv
-vboxnetflt
-vboxnetadp
-```
-
-The exact modules loaded depend on the VirtualBox configuration and whether virtual machines or networking features are currently being used.
-
----
-
-## 11. Check the VirtualBox Kernel Driver
-
-Check the `vboxdrv` module:
-
-```bash
-lsmod | grep vboxdrv
-```
-
-If the module is loaded, output similar to the following should appear:
-
-```text
-vboxdrv
-```
-
-If no output is returned, do not immediately assume that VirtualBox is broken. The module may not currently be loaded because no VirtualBox functionality requiring it has been started.
-
----
-
-## 12. Configure the Default Virtual Machine Location
+## 21. Configure the Default Virtual Machine Location
 
 VirtualBox stores virtual machine files on the host filesystem.
 
-You can view the current default machine folder:
+View the current default machine folder:
 
 ```bash
 VBoxManage list systemproperties | grep -i "Default machine folder"
 ```
 
-If desired, configure a dedicated directory.
-
-For example:
+If desired, configure a dedicated directory:
 
 ```bash
 mkdir -p "$HOME/VirtualBox VMs"
@@ -300,7 +637,7 @@ VBoxManage list systemproperties | grep -i "Default machine folder"
 
 ---
 
-## 13. Check Available Disk Space
+## 22. Check Available Disk Space
 
 Before creating virtual machines, check the available disk space:
 
@@ -324,7 +661,7 @@ If virtual machines will be stored under the home directory, make sure enough fr
 
 ---
 
-## 14. Optional: Create a Dedicated ISO Directory
+## 23. Optional: Create a Dedicated ISO Directory
 
 If you regularly install virtual machines, a dedicated ISO directory can make organization easier:
 
@@ -342,11 +679,11 @@ Store downloaded operating system installation images there.
 
 ---
 
-## 15. VirtualBox Extension Pack
+## 24. VirtualBox Extension Pack
 
 VirtualBox also provides an Extension Pack with additional functionality.
 
-The Extension Pack version must match the installed VirtualBox version.
+The Extension Pack version must match the installed VirtualBox version exactly.
 
 Check the installed version:
 
@@ -354,7 +691,7 @@ Check the installed version:
 VBoxManage --version
 ```
 
-If you decide to install an Extension Pack, download the matching version from the official VirtualBox website.
+If you decide to install an Extension Pack, download the matching version from the [official VirtualBox download page](https://www.virtualbox.org/wiki/Downloads).
 
 Do not install an Extension Pack from an unrelated source.
 
@@ -370,30 +707,95 @@ List installed Extension Packs:
 VBoxManage list extpacks
 ```
 
-> Extension Pack licensing and redistribution terms are different from the base VirtualBox package. Review the current Oracle licensing information before installing or redistributing it.
+> The Extension Pack has licensing and redistribution terms that differ from the base VirtualBox package. Review the current Oracle licensing information before installing or redistributing it.
+
+> The Extension Pack is optional and is not required for the basic VirtualBox configuration described in this guide.
 
 ---
 
-## 16. Troubleshooting
+## 25. Troubleshooting
 
 ### `VBoxManage: command not found`
 
-Check the package:
+Check the installed package:
 
 ```bash
-apt policy virtualbox
+apt policy virtualbox-7.2
 ```
 
 If VirtualBox is not installed:
 
 ```bash
-sudo apt install -y virtualbox
+sudo apt install -y virtualbox-7.2
 ```
 
 Then verify:
 
 ```bash
 VBoxManage --version
+```
+
+---
+
+### The Oracle repository is not available
+
+Verify the repository:
+
+```bash
+cat /etc/apt/sources.list.d/virtualbox.list
+```
+
+Expected:
+
+```text
+deb [arch=amd64 signed-by=/etc/apt/keyrings/oracle-virtualbox-2016.gpg] https://download.virtualbox.org/virtualbox/debian resolute contrib
+```
+
+Verify the signing key:
+
+```bash
+sudo gpg --show-keys /etc/apt/keyrings/oracle-virtualbox-2016.gpg
+```
+
+Then update APT:
+
+```bash
+sudo apt update
+```
+
+---
+
+### APT reports a repository signature error
+
+Check that the keyring exists:
+
+```bash
+ls -l /etc/apt/keyrings/oracle-virtualbox-2016.gpg
+```
+
+If necessary, recreate the keyring using the official Oracle signing key:
+
+```bash
+wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc \
+  -O /tmp/oracle_vbox_2016.asc
+```
+
+```bash
+sudo gpg --dearmor \
+  --output /etc/apt/keyrings/oracle-virtualbox-2016.gpg \
+  /tmp/oracle_vbox_2016.asc
+```
+
+Remove the temporary file:
+
+```bash
+rm /tmp/oracle_vbox_2016.asc
+```
+
+Then:
+
+```bash
+sudo apt update
 ```
 
 ---
@@ -433,13 +835,25 @@ id -nG | grep -qw vboxusers && echo "vboxusers membership confirmed"
 Check the installed package:
 
 ```bash
-apt policy virtualbox
+apt policy virtualbox-7.2
 ```
 
-Check the kernel:
+Check the running kernel:
 
 ```bash
 uname -r
+```
+
+Check the kernel headers:
+
+```bash
+ls -d /usr/src/linux-headers-$(uname -r)
+```
+
+Check DKMS:
+
+```bash
+dkms status
 ```
 
 Check loaded VirtualBox modules:
@@ -449,6 +863,34 @@ lsmod | grep -E '^vbox'
 ```
 
 If VirtualBox was recently installed or the kernel was recently updated, reboot the system and test again.
+
+If the problem persists, inspect the VirtualBox installation log:
+
+```bash
+sudo less /var/log/vbox-install.log
+```
+
+Oracle documents `vbox-install.log` as a useful source of information when kernel module compilation fails. :contentReference[oaicite:10]{index=10}
+
+---
+
+### Secure Boot prevents VirtualBox modules from loading
+
+Check Secure Boot:
+
+```bash
+mokutil --sb-state
+```
+
+If Secure Boot is enabled, verify whether the VirtualBox modules are loaded:
+
+```bash
+lsmod | grep -E '^vbox'
+```
+
+If the modules cannot be loaded, follow Ubuntu's module-signing procedure for Secure Boot.
+
+Do not disable Secure Boot solely to bypass an installation problem unless there is a specific operational requirement to do so.
 
 ---
 
@@ -470,10 +912,6 @@ Intel VT-x
 AMD-V
 SVM Mode
 ```
-
-The exact name depends on the system firmware.
-
-> Changing firmware settings should be done carefully. Do not change unrelated firmware options.
 
 ---
 
@@ -511,6 +949,12 @@ vboxusers
 
 is present.
 
+Check Secure Boot:
+
+```bash
+mokutil --sb-state
+```
+
 Also check available disk space:
 
 ```bash
@@ -519,7 +963,7 @@ df -h
 
 ---
 
-## 17. Verify the Complete Installation
+## 26. Verify the Complete Installation
 
 Run:
 
@@ -527,10 +971,16 @@ Run:
 VBoxManage --version
 ```
 
-Then:
+Verify the executable:
 
 ```bash
 which VirtualBox
+```
+
+Verify the package source:
+
+```bash
+apt-cache policy virtualbox-7.2
 ```
 
 Verify the user group:
@@ -543,6 +993,12 @@ Check virtualization support:
 
 ```bash
 lscpu | grep -i virtualization
+```
+
+Check DKMS:
+
+```bash
+dkms status
 ```
 
 Check VirtualBox modules:
@@ -570,15 +1026,32 @@ VBoxManage list systemproperties | grep -i "Default machine folder"
 The VirtualBox setup consists of:
 
 ```text
-VirtualBox
-├── Installed
+Oracle VirtualBox
+├── Oracle APT repository configured
+├── Oracle signing key configured
+├── Kernel headers installed
+├── DKMS installed
+├── VirtualBox installed
 ├── Version verified
 ├── Hardware virtualization checked
 ├── User added to vboxusers
 ├── Group membership verified
 ├── Kernel modules checked
+├── Secure Boot status checked
 ├── Default VM location reviewed
 └── VBoxManage tested
+```
+
+The Oracle repository configuration is:
+
+```text
+https://download.virtualbox.org/virtualbox/debian
+```
+
+The Ubuntu 26.04 codename is:
+
+```text
+resolute
 ```
 
 The most important user configuration is:
