@@ -94,7 +94,6 @@ sudo ufw status numbered
 ```
 
 > If SSH is not used, do not add an SSH firewall rule unnecessarily.
-
 > If you are connected to the workstation remotely through SSH, make sure the appropriate SSH rule is configured before enabling UFW. Otherwise, the firewall may block your current connection.
 
 ---
