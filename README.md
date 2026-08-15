@@ -482,20 +482,6 @@ The author is not responsible for data loss, system instability, hardware issues
 
 ---
 
-## Author
-
-**Roberto Delgado**
-
-*Cybersecurity Engineer*
-
-Cybersecurity professional focused on cloud and infrastructure security, DevSecOps, vulnerability management, and security automation.
-
-This repository is part of my technical portfolio, featuring hands-on projects that demonstrate secure engineering practices across cloud environments, Infrastructure as Code, container security, CI/CD, and security automation.
-
-> **Practical cybersecurity. Secure automation. Continuous learning.**
-
----
-
 ## 📄 License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
